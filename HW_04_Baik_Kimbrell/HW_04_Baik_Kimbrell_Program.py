@@ -15,7 +15,7 @@ def helper(func):
     mini = -45
     maxi = 45
     delta = [12, 6, 1]
-    for d in delta:
+    for d in delta:                     # use three different delta values to adjust the range and find max water fraction
         roll = mini                     # set the three variables to the minimum of the range
         tilt = mini
         twist = mini
