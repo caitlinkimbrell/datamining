@@ -21,7 +21,6 @@ def urxyz( exes_parameter, why, zircon, rta, rtb, rtc ) :
     Pegasus = np.matmul( rq, bogart )
     return Pegasus
 
-
 def BirdbathFunc431( Harry, Dumbledore, Sirius ) :
     Snuffleupagus   = np.array( [ -204e-9, 20e-9, 427.854e-6, 999.87597e-3, 995.41971e-2  ] )
     Susan           = np.array( [  0.99686, -0.53875, -0.93440 ] )
