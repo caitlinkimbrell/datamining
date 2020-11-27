@@ -5,15 +5,6 @@ import sys
 import pandas as pd
 import csv
 
-def preprocess(gps_data):
-    print(gps_data.head(10))
-    gps_data.drop([0,1,2,3])
-    print(gps_data.head(10))
-
-def eliminate_unnecessary_data(gps_data):
-    filtered_data = gps_data[gps_data[0] != "$GPGSA" and gps_data[0] != "$GPVTG"]
-    print(filtered_data.head(10))
-
 def emit_header():
     """
     initialize the kml file and emit header
@@ -50,6 +41,7 @@ def emit_epilog(filehandle):
     filehandle.close()
 
 def emit_body(filehandle, gps_df):
+    previous_coord = ""
     for index in range(gps_df.shape[0]):
         coordinate = ""
         if gps_df["E/W of Longitude"].iloc[index] == 'W':
@@ -67,8 +59,12 @@ def emit_body(filehandle, gps_df):
         speed = gps_df["Speed in knots"].iloc[index]
         coordinate += str(speed)
 
+        # if it's duplicate/same record, no need to put it in
+        if coordinate == previous_coord:
+            continue
         filehandle.write("\t\t\t\t\t")
         filehandle.write(coordinate + "\n")
+        previous_coord = coordinate
     return filehandle
 
 def main():
@@ -76,11 +72,9 @@ def main():
     with open(sys.argv[1], 'rt') as readhandle:     # read in the GPS file
         reader = csv.reader(readhandle)
         for row in reader:
+            # only using GPRMC data
             if len(row) == gps_df.shape[1] and row[0] == '$GPRMC':
                 gps_df.loc[len(gps_df)] = row
-    print(gps_df.head())
-    print(gps_df.shape[0])
-    print(gps_df.tail())
     kml_handle = emit_header()
     kml_handle = emit_body(kml_handle, gps_df)
     emit_epilog(kml_handle)
