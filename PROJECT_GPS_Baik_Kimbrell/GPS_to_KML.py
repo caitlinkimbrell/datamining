@@ -15,13 +15,15 @@ def eliminate_unnecessary_data(gps_data):
     print(filtered_data.head(10))
 
 def main():
-    gps_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', ' Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Fix UTC', 'Degree (Magnetic variation)', 'E/W Magnetic Variation', 'Mode Indicator', 'Checksum'])
+    gps_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', ' Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...', '...', 'Checksum'])
     with open(sys.argv[1], 'rt') as readhandle:     # read in the GPS file
         reader = csv.reader(readhandle)
         for row in reader:
-            if row[0] == '$GPRMC':
-
-    preprocess(gps_df)
-    eliminate_unnecessary_data(gps_df)
+            if len(row) > 0 and row[0] == '$GPRMC':
+                print(row, type(row))
+                gps_df.loc[len(gps_df)] = row
+    print(gps_df.head())
+    # preprocess(gps_df)
+    # eliminate_unnecessary_data(gps_df)
 
 main()
