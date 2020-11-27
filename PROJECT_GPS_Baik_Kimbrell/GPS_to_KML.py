@@ -23,7 +23,7 @@ def emit_header():
     kml_file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
     kml_file.write("<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n")
     kml_file.write("\t<Document>\n")
-    kml_file.write("\t\t<Style id=\"yellowPoly\"\n")
+    kml_file.write("\t\t<Style id=\"yellowPoly\">\n")
     kml_file.write("\t\t\t<LineStyle>\n")
     kml_file.write("\t\t\t\t<color>Af00ffff</color>\n")
     kml_file.write("\t\t\t\t<width>6</width>\n")
@@ -49,17 +49,40 @@ def emit_epilog(filehandle):
     filehandle.write("</kml>\n")
     filehandle.close()
 
+def emit_body(filehandle, gps_df):
+    for index in range(gps_df.shape[0]):
+        coordinate = ""
+        if gps_df["E/W of Longitude"].iloc[index] == 'W':
+            coordinate += "-"
+        longitude = float(gps_df["Longitude"].iloc[index]) / 100
+        coordinate += str(longitude)
+        coordinate += ","
+
+        if gps_df["N/S of Longitude"].iloc[index] == 'S':
+            coordinate += "-"
+        latitude = float(gps_df["Latitude"].iloc[index]) / 100
+        coordinate += str(latitude)
+        coordinate += ","
+
+        speed = gps_df["Speed in knots"].iloc[index]
+        coordinate += str(speed)
+
+        filehandle.write("\t\t\t\t\t")
+        filehandle.write(coordinate + "\n")
+    return filehandle
+
 def main():
-    gps_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', ' Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...', '...', 'Checksum'])
+    gps_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...', '...', 'Checksum'])
     with open(sys.argv[1], 'rt') as readhandle:     # read in the GPS file
         reader = csv.reader(readhandle)
         for row in reader:
-            if len(row) > 0 and row[0] == '$GPRMC':
-                print(row, type(row))
+            if len(row) == gps_df.shape[1] and row[0] == '$GPRMC':
                 gps_df.loc[len(gps_df)] = row
     print(gps_df.head())
-    print(gps_df.size)
+    print(gps_df.shape[0])
+    print(gps_df.tail())
     kml_handle = emit_header()
+    kml_handle = emit_body(kml_handle, gps_df)
     emit_epilog(kml_handle)
 
 main()
