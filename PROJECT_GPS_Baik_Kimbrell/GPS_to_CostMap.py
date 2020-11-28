@@ -25,14 +25,17 @@ def costmap_header():
     kml_file.write("\t\t\t<coordinates>\n")
     return kml_file
 
+
 def end_kml(filehandle):
     filehandle.write("</kml>")
     filehandle.close()
+
 
 def end_placemark(filehandle):
     filehandle.write("\t\t\t</coordinates>\n")
     filehandle.write("\t\t</Point>\n")
     filehandle.write("\t</Placemark>\n")
+
 
 def detect_stop(filehandle, gps_df):
     prev_gps = None
@@ -90,7 +93,7 @@ def detect_left(filehandle, gps_df):
         else:
             # TODO if it's slowing down and the angle is
             if prev_gps["Speed in knots"] > curr_gps["Speed in knots"] and \
-                prev_gps["Track"] > curr_gps["Track"]:
+            prev_gps["Track"] > curr_gps["Track"]:
                 if curr_gps["E/W of Longitude"] == 'W':
                     coordinate += "-"
                 longitude = float(curr_gps["Longitude"]) / 100
@@ -136,7 +139,7 @@ def detect_right(filehandle, gps_df):
         else:
             # TODO if it's slowing down and the angle is
             if prev_gps["Speed in knots"] > curr_gps["Speed in knots"] and \
-                prev_gps["Track"] > curr_gps["Track"]:
+            prev_gps["Track"] > curr_gps["Track"]:
                 if curr_gps["E/W of Longitude"] == 'W':
                     coordinate += "-"
                 longitude = float(curr_gps["Longitude"]) / 100
@@ -159,6 +162,7 @@ def detect_right(filehandle, gps_df):
                 filehandle.write(coordinate + "\n")
     end_placemark(filehandle)
 
+
 def get_df(file):
     gps_df = pd.DataFrame(
         columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
@@ -171,6 +175,7 @@ def get_df(file):
                 gps_df.loc[len(gps_df)] = row
     gps_df = filter_df(gps_df)
     return gps_df
+
 
 def filter_df(df):
     new_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
@@ -193,15 +198,17 @@ def filter_df(df):
     df = df.iloc[::5, :]        # get every 5 rows
     return new_df
 
+
 def main():
     # TODO takes in several GPS files and output one kml file with all the placemarks.
     file = sys.argv[1]
     df = get_df(file)
     print(df)
-    # kml_handle = costmap_header()
-    # detect_stop(kml_handle, df)
-    # detect_left(kml_handle, df)
-    # detect_right(kml_handle, df)
-    # end_kml(kml_handle)
+    kml_handle = costmap_header()
+    detect_stop(kml_handle, df)
+    detect_left(kml_handle, df)
+    detect_right(kml_handle, df)
+    end_kml(kml_handle)
+
 
 main()
