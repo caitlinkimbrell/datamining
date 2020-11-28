@@ -40,10 +40,10 @@ def end_placemark(filehandle):
 def detect_stop(filehandle, gps_df):
     prev_gps = None
     curr_gps = None
-    for index in range(gps_df):
+    for index in range(gps_df.shape[0]):
         coordinate = ""
         curr_gps = gps_df.iloc[index]
-        if prev_gps == None:
+        if prev_gps is None:
             prev_gps = curr_gps
         else:
             # if it's slowing down
@@ -85,10 +85,10 @@ def detect_left(filehandle, gps_df):
     filehandle.write("\t\t\t<coordinates>\n")
     prev_gps = None
     curr_gps = None
-    for index in range(gps_df):
+    for index in range(gps_df.shape[0]):
         coordinate = ""
         curr_gps = gps_df.iloc[index]
-        if prev_gps == None:
+        if prev_gps is None:
             prev_gps = curr_gps
         else:
             # TODO if it's slowing down and the angle is
@@ -131,10 +131,10 @@ def detect_right(filehandle, gps_df):
     filehandle.write("\t\t\t<coordinates>\n")
     prev_gps = None
     curr_gps = None
-    for index in range(gps_df):
+    for index in range(gps_df.shape[0]):
         coordinate = ""
         curr_gps = gps_df.iloc[index]
-        if prev_gps == None:
+        if prev_gps is None:
             prev_gps = curr_gps
         else:
             # TODO if it's slowing down and the angle is
