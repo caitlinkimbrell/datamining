@@ -75,7 +75,7 @@ def emit_body(filehandle, gps_df):
     return filehandle
 
 def filter_df(df):
-    new_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...', '...', 'Checksum'])
+    new_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
     prev = None
     counter = 0
     for row in range(df.shape[0]):
@@ -97,7 +97,7 @@ def filter_df(df):
 def get_df(file):
     gps_df = pd.DataFrame(
         columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
-                 'Speed in knots', 'Track', 'Date', '...', '...', 'Checksum'])
+                 'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
     with open(file, 'rt') as readhandle:  # read in the GPS file
         reader = csv.reader(readhandle)
         for row in reader:
@@ -109,14 +109,7 @@ def get_df(file):
 
 
 def main():
-    gps_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...', '...', 'Checksum'])
-    with open(sys.argv[1], 'rt') as readhandle:     # read in the GPS file
-        reader = csv.reader(readhandle)
-        for row in reader:
-            # only using GPRMC data
-            if len(row) == gps_df.shape[1] and row[0] == '$GPRMC':
-                gps_df.loc[len(gps_df)] = row
-    gps_df = filter_df(gps_df)
+    gps_df = get_df(sys.argv[1])
     kml_handle = emit_header()
     kml_handle = emit_body(kml_handle, gps_df)
     emit_epilog(kml_handle)
