@@ -4,6 +4,7 @@ GPS_to_KML.py reads GPS file and converts to KML file that can be viewed on Goog
 import sys
 import pandas as pd
 import csv
+import math
 
 def emit_header():
     """
@@ -47,13 +48,19 @@ def emit_body(filehandle, gps_df):
         if gps_df["E/W of Longitude"].iloc[index] == 'W':
             coordinate += "-"
         longitude = float(gps_df["Longitude"].iloc[index]) / 100
-        coordinate += str(longitude)
+        degree = math.floor(longitude)
+        frac_changes = (longitude - degree) * 100 / 60
+        dg_frac = degree + frac_changes
+        coordinate += str(dg_frac)
         coordinate += ","
 
         if gps_df["N/S of Longitude"].iloc[index] == 'S':
             coordinate += "-"
         latitude = float(gps_df["Latitude"].iloc[index]) / 100
-        coordinate += str(latitude)
+        degree = math.floor(latitude)
+        frac_changes = (latitude - degree) * 100 / 60
+        dg_frac = degree + frac_changes
+        coordinate += str(dg_frac)
         coordinate += ","
 
         speed = gps_df["Speed in knots"].iloc[index]
