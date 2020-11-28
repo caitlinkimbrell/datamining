@@ -2,7 +2,6 @@ import sys
 import pandas as pd
 import csv
 import math
-from PROJECT_GPS_Baik_Kimbrell import GPS_to_KML as gpskml
 
 def costmap_header():
     """
@@ -160,11 +159,44 @@ def detect_right(filehandle, gps_df):
                 filehandle.write(coordinate + "\n")
     end_placemark(filehandle)
 
-def main():
-    file = sys.argv[1]
-    df = gpskml.get_df(file)
+def get_df(file):
+    gps_df = pd.DataFrame(
+        columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
+                 'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
+    with open(file, 'rt') as readhandle:  # read in the GPS file
+        reader = csv.reader(readhandle)
+        for row in reader:
+            # only using GPRMC data
+            if len(row) == gps_df.shape[1] and row[0] == '$GPRMC':
+                gps_df.loc[len(gps_df)] = row
+    gps_df = filter_df(gps_df)
+    return gps_df
+
+def filter_df(df):
+    new_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
+    prev = None
+    counter = 0
+    for row in range(df.shape[0]):
+        if prev is None:
+            prev = df.iloc[row]
+            new_df.loc[counter] = prev
+            counter += 1
+        else:
+            curr = df.iloc[row]
+            if curr["Latitude"] == prev["Latitude"] and curr["Longitude"] == prev["Longitude"] and curr["Speed in knots"] == prev["Speed in knots"]:
+                continue
+            else:
+                prev = curr
+                new_df.loc[counter] = prev
+                counter += 1
     df = df.drop(columns=['...1', '...2'])      # drop unnecessary columns
     df = df.iloc[::5, :]        # get every 5 rows
+    return new_df
+
+def main():
+    # TODO takes in several GPS files and output one kml file with all the placemarks.
+    file = sys.argv[1]
+    df = get_df(file)
     print(df)
     # kml_handle = costmap_header()
     # detect_stop(kml_handle, df)
