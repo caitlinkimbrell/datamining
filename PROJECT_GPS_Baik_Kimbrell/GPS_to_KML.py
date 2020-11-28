@@ -93,6 +93,21 @@ def filter_df(df):
                 counter += 1
     return new_df
 
+
+def get_df(file):
+    gps_df = pd.DataFrame(
+        columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
+                 'Speed in knots', 'Track', 'Date', '...', '...', 'Checksum'])
+    with open(file, 'rt') as readhandle:  # read in the GPS file
+        reader = csv.reader(readhandle)
+        for row in reader:
+            # only using GPRMC data
+            if len(row) == gps_df.shape[1] and row[0] == '$GPRMC':
+                gps_df.loc[len(gps_df)] = row
+    gps_df = filter_df(gps_df)
+    return gps_df
+
+
 def main():
     gps_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...', '...', 'Checksum'])
     with open(sys.argv[1], 'rt') as readhandle:     # read in the GPS file
