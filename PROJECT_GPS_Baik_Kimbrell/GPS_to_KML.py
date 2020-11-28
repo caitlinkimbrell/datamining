@@ -74,6 +74,25 @@ def emit_body(filehandle, gps_df):
         previous_coord = coordinate
     return filehandle
 
+def filter_df(df):
+    new_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...', '...', 'Checksum'])
+    prev = None
+    counter = 0
+    for row in range(df.shape[0]):
+        if prev is None:
+            prev = df.iloc[row]
+            new_df.loc[counter] = prev
+            counter += 1
+        else:
+            curr = df.iloc[row]
+            if curr["Latitude"] == prev["Latitude"] and curr["Longitude"] == prev["Longitude"] and curr["Speed in knots"] == prev["Speed in knots"]:
+                continue
+            else:
+                prev = curr
+                new_df.loc[counter] = prev
+                counter += 1
+    return new_df
+
 def main():
     gps_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...', '...', 'Checksum'])
     with open(sys.argv[1], 'rt') as readhandle:     # read in the GPS file
@@ -82,6 +101,7 @@ def main():
             # only using GPRMC data
             if len(row) == gps_df.shape[1] and row[0] == '$GPRMC':
                 gps_df.loc[len(gps_df)] = row
+    gps_df = filter_df(gps_df)
     kml_handle = emit_header()
     kml_handle = emit_body(kml_handle, gps_df)
     emit_epilog(kml_handle)
