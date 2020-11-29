@@ -11,30 +11,32 @@ def costmap_header():
     kml_file = open("KML_MapFile.kml", "w")
     kml_file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
     kml_file.write("<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n")
-    kml_file.write("\t<Placemark>\n")
-    kml_file.write("\t\t<description>Red PIN for a STOP.</description>\n")
-    kml_file.write("\t\t<Style id=\"normalPlacemark\">\n")
-    kml_file.write("\t\t\t<IconStyle>\n")
-    kml_file.write("\t\t\t\t<color>ff0000ff</color>\n")   # red
-    kml_file.write("\t\t\t\t<Icon>\n")
-    kml_file.write("\t\t\t\t\t<href>http://maps.google.com/mapfiles/kml/paddle/1.png</href>\n")
-    kml_file.write("\t\t\t\t</Icon>\n")
-    kml_file.write("\t\t\t</IconStyle>\n")
-    kml_file.write("\t\t</Style>\n")
-    kml_file.write("\t\t<Point>\n")
-    kml_file.write("\t\t\t<coordinates>\n")
+    kml_file.write("\t<Document>\n")
+    kml_file.write("\t\t<Placemark>\n")
+    kml_file.write("\t\t\t<description>Red PIN for a STOP.</description>\n")
+    kml_file.write("\t\t\t<Style id=\"normalPlacemark\">\n")
+    kml_file.write("\t\t\t\t<IconStyle>\n")
+    kml_file.write("\t\t\t\t\t<color>ff0000ff</color>\n")   # red
+    kml_file.write("\t\t\t\t\t<Icon>\n")
+    kml_file.write("\t\t\t\t\t\t<href>http://maps.google.com/mapfiles/kml/paddle/1.png</href>\n")
+    kml_file.write("\t\t\t\t\t</Icon>\n")
+    kml_file.write("\t\t\t\t</IconStyle>\n")
+    kml_file.write("\t\t\t</Style>\n")
+    kml_file.write("\t\t\t<Point>\n")
+    kml_file.write("\t\t\t\t<coordinates>\n")
     return kml_file
 
 
 def end_kml(filehandle):
+    filehandle.write("\t</Document>\n")
     filehandle.write("</kml>")
     filehandle.close()
 
 
 def end_placemark(filehandle):
-    filehandle.write("\t\t\t</coordinates>\n")
-    filehandle.write("\t\t</Point>\n")
-    filehandle.write("\t</Placemark>\n")
+    filehandle.write("\t\t\t\t</coordinates>\n")
+    filehandle.write("\t\t\t</Point>\n")
+    filehandle.write("\t\t</Placemark>\n")
 
 
 def detect_stop(filehandle, gps_df):
@@ -71,18 +73,18 @@ def detect_stop(filehandle, gps_df):
     end_placemark(filehandle)
 
 def detect_left(filehandle, gps_df):
-    filehandle.write("\t<Placemark>\n")
-    filehandle.write("\t\t<description>Yellow PIN for a LEFT TURN.</description>\n")
-    filehandle.write("\t\t<Style id=\"normalPlacemark\">\n")
-    filehandle.write("\t\t\t<IconStyle>\n")
-    filehandle.write("\t\t\t\t<color>ff00ffff</color>\n")   # yellow?
-    filehandle.write("\t\t\t\t<Icon>\n")
-    filehandle.write("\t\t\t\t\t<href>http://maps.google.com/mapfiles/kml/paddle/1.png</href>\n")
-    filehandle.write("\t\t\t\t</Icon>\n")
-    filehandle.write("\t\t\t</IconStyle>\n")
-    filehandle.write("\t\t</Style>\n")
-    filehandle.write("\t\t<Point>\n")
-    filehandle.write("\t\t\t<coordinates>\n")
+    filehandle.write("\t\t<Placemark>\n")
+    filehandle.write("\t\t\t<description>Yellow PIN for a LEFT TURN.</description>\n")
+    filehandle.write("\t\t\t<Style id=\"normalPlacemark\">\n")
+    filehandle.write("\t\t\t\t<IconStyle>\n")
+    filehandle.write("\t\t\t\t\t<color>ff00ffff</color>\n")   # yellow?
+    filehandle.write("\t\t\t\t\t<Icon>\n")
+    filehandle.write("\t\t\t\t\t\t<href>http://maps.google.com/mapfiles/kml/paddle/1.png</href>\n")
+    filehandle.write("\t\t\t\t\t</Icon>\n")
+    filehandle.write("\t\t\t\t</IconStyle>\n")
+    filehandle.write("\t\t\t</Style>\n")
+    filehandle.write("\t\t\t<Point>\n")
+    filehandle.write("\t\t\t\t<coordinates>\n")
     prev_gps = None
     curr_gps = None
     for index in range(gps_df.shape[0]):
@@ -117,18 +119,18 @@ def detect_left(filehandle, gps_df):
     end_placemark(filehandle)
 
 def detect_right(filehandle, gps_df):
-    filehandle.write("\t<Placemark>\n")
-    filehandle.write("\t\t<description>Cyan PIN for a RIGHT TURN.</description>\n")
-    filehandle.write("\t\t<Style id=\"normalPlacemark\">\n")
-    filehandle.write("\t\t\t<IconStyle>\n")
-    filehandle.write("\t\t\t\t<color>ff00ffff</color>\n")   # yellow?
-    filehandle.write("\t\t\t\t<Icon>\n")
-    filehandle.write("\t\t\t\t\t<href>http://maps.google.com/mapfiles/kml/paddle/1.png</href>\n")
-    filehandle.write("\t\t\t\t</Icon>\n")
-    filehandle.write("\t\t\t</IconStyle>\n")
-    filehandle.write("\t\t</Style>\n")
-    filehandle.write("\t\t<Point>\n")
-    filehandle.write("\t\t\t<coordinates>\n")
+    filehandle.write("\t\t<Placemark>\n")
+    filehandle.write("\t\t\t<description>Cyan PIN for a RIGHT TURN.</description>\n")
+    filehandle.write("\t\t\t<Style id=\"normalPlacemark\">\n")
+    filehandle.write("\t\t\t\t<IconStyle>\n")
+    filehandle.write("\t\t\t\t\t<color>ff00ffff</color>\n")   # yellow?
+    filehandle.write("\t\t\t\t\t<Icon>\n")
+    filehandle.write("\t\t\t\t\t\t<href>http://maps.google.com/mapfiles/kml/paddle/1.png</href>\n")
+    filehandle.write("\t\t\t\t\t</Icon>\n")
+    filehandle.write("\t\t\t\t</IconStyle>\n")
+    filehandle.write("\t\t\t</Style>\n")
+    filehandle.write("\t\t\t<Point>\n")
+    filehandle.write("\t\t\t\t<coordinates>\n")
     prev_gps = None
     curr_gps = None
     for index in range(gps_df.shape[0]):
