@@ -3,6 +3,17 @@ import pandas as pd
 import csv
 import math
 
+right_turns_df = pd.DataFrame(
+        columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
+                 'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
+left_turns_df = pd.DataFrame(
+        columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
+                 'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
+stops_df = pd.DataFrame(
+        columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
+                 'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
+file_dfs = []
+
 def costmap_header():
     """
     initialize the kml file and emit header
@@ -179,6 +190,43 @@ def get_df(file):
     return gps_df
 
 
+def get_coordinate(curr_gps):
+    coordinate = "\t\t\t\t"
+    if curr_gps["E/W of Longitude"] == 'W':
+        coordinate += "-"
+    longitude = float(curr_gps["Longitude"]) / 100
+    degree = math.floor(longitude)
+    frac_changes = (longitude - degree) * 100 / 60
+    dg_frac = degree + frac_changes
+    coordinate += str(dg_frac)
+    coordinate += ","
+
+    if curr_gps["N/S of Longitude"] == 'S':
+        coordinate += "-"
+    latitude = float(curr_gps["Latitude"]) / 100
+    degree = math.floor(latitude)
+    frac_changes = (latitude - degree) * 100 / 60
+    dg_frac = degree + frac_changes
+    coordinate += str(dg_frac)
+    coordinate += ",0.0"
+    coordinate += "\n"
+    return coordinate
+
+# TODO ADD ANGLES
+def is_right_turn(prev_gps, curr_gps):
+    return prev_gps["Speed in knots"] > curr_gps["Speed in knots"] and \
+                    prev_gps["Track"] > curr_gps["Track"]
+
+# TODO ADD ANGLES
+def is_left_turn(prev_gps, curr_gps):
+    return prev_gps["Speed in knots"] > curr_gps["Speed in knots"] and \
+                    prev_gps["Track"] > curr_gps["Track"]
+
+
+def is_stop(prev_gps, curr_gps):
+    return float(curr_gps["Speed in knots"]) < 4.00
+
+
 def filter_df(df):
     new_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
     prev = None
@@ -203,9 +251,42 @@ def filter_df(df):
 
 def main():
     # TODO takes in several GPS files and output one kml file with all the placemarks.
-    file = sys.argv[1]
-    df = get_df(file)
-    print(df)
+    for i in range(len(sys.argv)):
+        if i == 0:
+            continue
+        file = sys.argv[i]
+        df = filter_df(get_df(file))
+        #print(df)
+        file_dfs.append(df)
+    for i in range(len(file_dfs)):
+        df = file_dfs[i]
+        prev = None
+        for row in range(df.shape[0]):
+            curr = df.iloc[row]
+            if prev is None:
+                prev = curr
+                continue
+            else:
+                if is_left_turn(prev, curr):
+                    global left_turns_df
+                    left_turns_df = left_turns_df.append(curr)
+                elif is_right_turn(prev, curr):
+                    global right_turns_df
+                    right_turns_df = right_turns_df.append(curr)
+                elif is_stop(prev, curr):
+                    global stops_df
+                    stops_df = stops_df.append(curr)
+    global left_turns_df
+    left_turns_df = filter_df(left_turns_df)
+    global right_turns_df
+    right_turns_df = filter_df(right_turns_df)
+    global stops_df
+    stops_df = filter_df(stops_df)
+
+    print(left_turns_df)
+    print(right_turns_df)
+    print(stops_df)
+
     kml_handle = costmap_header()
     detect_stop(kml_handle, df)
     detect_left(kml_handle, df)
