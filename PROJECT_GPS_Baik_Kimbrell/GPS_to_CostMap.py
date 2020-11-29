@@ -215,7 +215,7 @@ def get_coordinate(curr_gps):
 def is_right_turn(prev_gps, curr_gps):
     flag = False
     if prev_gps["Speed in knots"] > curr_gps["Speed in knots"] and \
-            prev_gps["Speed in knots"] >= 0.10:
+            float(prev_gps["Speed in knots"]) >= 0.10:
         if float(prev_gps["Track"]) > float(curr_gps["Track"]) and \
                 float(prev_gps["Track"]) - float(curr_gps["Track"]) - 180 >= 65 or \
                 float(prev_gps["Track"]) - float(curr_gps["Track"]) - 180 < 100:
@@ -235,7 +235,7 @@ def is_right_turn(prev_gps, curr_gps):
 def is_left_turn(prev_gps, curr_gps):
     flag = False
     if prev_gps["Speed in knots"] < curr_gps["Speed in knots"] and \
-            prev_gps["Speed in knots"] >= 0.10:
+            float(prev_gps["Speed in knots"]) >= 0.10:
         if float(prev_gps["Track"]) < float(curr_gps["Track"]) and \
                 float(prev_gps["Track"]) - float(curr_gps["Track"]) + 180 <= -65 or \
                 float(prev_gps["Track"]) - float(curr_gps["Track"]) + 180 > -100:
@@ -305,11 +305,8 @@ def main():
                 elif is_stop(prev, curr):
                     global stops_df
                     stops_df = stops_df.append(curr)
-    global left_turns_df
     left_turns_df = filter_df(left_turns_df)
-    global right_turns_df
     right_turns_df = filter_df(right_turns_df)
-    global stops_df
     stops_df = filter_df(stops_df)
 
     print(left_turns_df)
