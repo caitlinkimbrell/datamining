@@ -212,16 +212,45 @@ def get_coordinate(curr_gps):
     coordinate += "\n"
     return coordinate
 
-# TODO ADD ANGLES
 def is_right_turn(prev_gps, curr_gps):
-    return prev_gps["Speed in knots"] > curr_gps["Speed in knots"] and \
-                    prev_gps["Track"] > curr_gps["Track"]
+    flag = False
+    if prev_gps["Speed in knots"] > curr_gps["Speed in knots"] and \
+            prev_gps["Speed in knots"] >= 0.10:
+        if float(prev_gps["Track"]) > float(curr_gps["Track"]) and \
+                float(prev_gps["Track"]) - float(curr_gps["Track"]) - 180 >= 65 or \
+                float(prev_gps["Track"]) - float(curr_gps["Track"]) - 180 < 100:
+            # if the starting track angle is higher than the finishing angle and
+            # the smaller difference between the two is greater than or equal to 65 or less than 100 degrees,
+            # it is right turn
+            flag = True
+        elif float(prev_gps["Track"]) < float(curr_gps["Track"]) and \
+                float(prev_gps["Track"]) - float(curr_gps["Track"]) <= -65 or \
+                float(prev_gps["Track"]) - float(curr_gps["Track"]) > -100:
+            # if the starting track angle is lower than the finishing angle and
+            # the smaller difference between the two is greater than or equal to 65 or less than 100 degrees,
+            # it is right turn
+            flag = True
+    return flag
 
-# TODO ADD ANGLES
 def is_left_turn(prev_gps, curr_gps):
-    return prev_gps["Speed in knots"] > curr_gps["Speed in knots"] and \
-                    prev_gps["Track"] > curr_gps["Track"]
-
+    flag = False
+    if prev_gps["Speed in knots"] < curr_gps["Speed in knots"] and \
+            prev_gps["Speed in knots"] >= 0.10:
+        if float(prev_gps["Track"]) < float(curr_gps["Track"]) and \
+                float(prev_gps["Track"]) - float(curr_gps["Track"]) + 180 <= -65 or \
+                float(prev_gps["Track"]) - float(curr_gps["Track"]) + 180 > -100:
+            # if the starting track angle is less than the finishing angle and
+            # the smaller difference between the two is greater than or equal to 65 or less than 100 degrees,
+            # it is left turn
+            flag = True
+        elif float(prev_gps["Track"]) > float(curr_gps["Track"]) and \
+                float(prev_gps["Track"]) - float(curr_gps["Track"]) >= 65 or \
+                float(prev_gps["Track"]) - float(curr_gps["Track"]) < 100:
+            # if the starting track angle is lower than the finishing angle and
+            # the smaller difference between the two is greater than or equal to 65 or less than 100 degrees,
+            # it is right turn
+            flag = True
+    return flag
 
 def is_stop(prev_gps, curr_gps):
     return float(curr_gps["Speed in knots"]) < 4.00
