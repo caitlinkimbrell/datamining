@@ -118,8 +118,8 @@ def is_left_turn(prev_gps, curr_gps):
     if float(curr_gps["Speed in knots"]) <= 17:
         # going less than 20 mph
         if float(prev_gps["Track"]) < float(curr_gps["Track"]):
-            if float(prev_gps["Track"]) - float(curr_gps["Track"]) + 180 <= -80 or \
-                float(prev_gps["Track"]) - float(curr_gps["Track"]) + 180 > -100:
+            if 360 - float(curr_gps["Track"]) - float(prev_gps["Track"]) + 180 >= 80 or \
+                360 - float(curr_gps["Track"]) - float(prev_gps["Track"]) + 180 < 100:
                 # if the starting track angle is less than the finishing angle and
                 # the smaller difference between the two is greater than or equal to 80 or less than 100 degrees,
                 # it is left turn
