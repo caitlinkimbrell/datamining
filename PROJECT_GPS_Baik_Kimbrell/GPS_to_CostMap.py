@@ -17,7 +17,7 @@ master_dfs = pd.DataFrame(
                  'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
 color_dict = {"stop" : "507800F0", "right turn" : "50F0FF14", "left turn" : "5014F0FF" }
 delta_small = .0001
-delta_big = .01
+delta_big = .1
 
 def costmap_header(filename):
     """
@@ -136,7 +136,7 @@ def is_left_turn(prev_gps, curr_gps):
 
 
 def is_stop(prev_gps, curr_gps):
-    return float(curr_gps["Speed in knots"]) < 4.00
+    return float(curr_gps["Speed in knots"]) < .05 and float(prev_gps["Speed in knots"]) < .05
 
 
 def is_same(prev, curr, delta):
