@@ -12,8 +12,11 @@ left_turns_df = pd.DataFrame(
 stops_df = pd.DataFrame(
         columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
                  'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
-file_dfs = []
+master_dfs = pd.DataFrame(
+        columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
+                 'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
 color_dict = {"stop" : "507800F0", "right turn" : "50F0FF14", "left turn" : "5014F0FF" }
+delta = .002
 
 def costmap_header(filename):
     """
@@ -43,12 +46,11 @@ def get_df(file):
             # only using GPRMC data
             if len(row) == gps_df.shape[1] and row[0] == '$GPRMC':
                 gps_df.loc[len(gps_df)] = row
-    gps_df = filter_df(gps_df)
     return gps_df
 
 def write_placemark(filehandle, curr_gps, type):
     filehandle.write("\t\t<Placemark>\n")
-    filehandle.write("\t\t\t<description>type</description>\n")
+    filehandle.write("\t\t\t<description>"+type+"</description>\n")
     filehandle.write("\t\t\t<Style id=\""+type+"\">\n")
     filehandle.write("\t\t\t\t<IconStyle>\n")
     filehandle.write("\t\t\t\t\t<color>"+color_dict.get(type)+"</color>\n")  # yellow?
@@ -141,52 +143,52 @@ def is_same(prev, curr):
 def filter_df(df):
     new_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
     prev = None
-    counter = 0
     for row in range(df.shape[0]):
         if prev is None:
             prev = df.iloc[row]
-            new_df.loc[counter] = prev
-            counter += 1
+            new_df = new_df.append(prev)
         else:
             curr = df.iloc[row]
             if is_same(prev, curr):
                 continue
             else:
                 prev = curr
-                new_df.loc[counter] = prev
-                counter += 1
-    df = df.drop(columns=['...1', '...2'])      # drop unnecessary columns
-    df = df.iloc[::5, :]        # get every 5 rows
+                new_df = new_df.append(prev)
+    #df = df.drop(columns=['...1', '...2'])      # drop unnecessary columns
+    #df = df.iloc[::5, :]        # get every 5 rows
     return new_df
 
 
 def main():
     # TODO takes in several GPS files and output one kml file with all the placemarks.
-    for i in range(len(sys.argv)):
+    for i in range(len(sys.argv) - 1):
         if i == 0:
             continue
         file = sys.argv[i]
-        df = filter_df(get_df(file))
-        #print(df)
-        file_dfs.append(df)
-    for i in range(len(file_dfs)):
-        df = file_dfs[i]
-        prev = None
-        for row in range(df.shape[0]):
-            curr = df.iloc[row]
-            if prev is None:
-                prev = curr
-                continue
-            else:
-                if is_left_turn(prev, curr):
-                    global left_turns_df
-                    left_turns_df = left_turns_df.append(curr)
-                elif is_right_turn(prev, curr):
-                    global right_turns_df
-                    right_turns_df = right_turns_df.append(curr)
-                elif is_stop(prev, curr):
-                    global stops_df
-                    stops_df = stops_df.append(curr)
+        df = get_df(file)
+        global master_dfs
+        master_dfs = master_dfs.append(df)
+    prev = None
+    print(master_dfs[["Longitude", "Latitude", "Speed in knots"]])
+    master_dfs = filter_df(master_dfs)
+    print(master_dfs[["Longitude", "Latitude", "Speed in knots"]])
+    for row in range(master_dfs.shape[0]):
+        curr = master_dfs.iloc[row]
+        if prev is None:
+            prev = curr
+            if is_stop(prev, curr):
+                global stops_df
+                stops_df = stops_df.append(curr)
+            continue
+        else:
+            if is_left_turn(prev, curr):
+                global left_turns_df
+                left_turns_df = left_turns_df.append(curr)
+            elif is_right_turn(prev, curr):
+                global right_turns_df
+                right_turns_df = right_turns_df.append(curr)
+            elif is_stop(prev, curr):
+                stops_df = stops_df.append(curr)
     left_turns_df = filter_df(left_turns_df)
     right_turns_df = filter_df(right_turns_df)
     stops_df = filter_df(stops_df)
