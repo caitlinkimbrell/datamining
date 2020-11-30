@@ -6,12 +6,12 @@ import pandas as pd
 import csv
 import math
 
-def emit_header():
+def emit_header(filename):
     """
     initialize the kml file and emit header
     :return: initialized kml file handle
     """
-    kml_file = open("GPS_to_KML_result.kml", "w")
+    kml_file = open(filename, "w")
     kml_file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
     kml_file.write("<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n")
     kml_file.write("\t<Document>\n")
@@ -110,7 +110,7 @@ def get_df(file):
 
 def main():
     gps_df = get_df(sys.argv[1])
-    kml_handle = emit_header()
+    kml_handle = emit_header(sys.argv[2])
     kml_handle = emit_body(kml_handle, gps_df)
     emit_epilog(kml_handle)
 

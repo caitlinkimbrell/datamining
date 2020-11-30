@@ -15,12 +15,12 @@ stops_df = pd.DataFrame(
 file_dfs = []
 color_dict = {"stop" : "507800F0", "right turn" : "50F0FF14", "left turn" : "5014F0FF" }
 
-def costmap_header():
+def costmap_header(filename):
     """
     initialize the kml file and emit header
     :return: initialized kml file handle
     """
-    kml_file = open("KML_MapFile.kml", "w")
+    kml_file = open(filename, "w")
     kml_file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
     kml_file.write("<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n")
     kml_file.write("\t<Document>\n")
@@ -155,7 +155,7 @@ def filter_df(df):
 
 def main():
     # TODO takes in several GPS files and output one kml file with all the placemarks.
-    for i in range(len(sys.argv)):
+    for i in range(len(sys.argv) - 1):
         if i == 0:
             continue
         file = sys.argv[i]
@@ -188,7 +188,7 @@ def main():
     print(right_turns_df)
     print(stops_df)
 
-    kml_handle = costmap_header()
+    kml_handle = costmap_header(sys.argv[len(sys.argv) - 1])
     for points in range(len(stops_df)):
         write_placemark(kml_handle, stops_df.iloc[points], "stop")
     for points in range(len(right_turns_df)):
