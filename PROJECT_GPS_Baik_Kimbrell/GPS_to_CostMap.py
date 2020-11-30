@@ -14,13 +14,13 @@ stops_df = pd.DataFrame(
                  'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
 file_dfs = []
 color_dict = {"stop" : "507800F0", "right turn" : "50F0FF14", "left turn" : "5014F0FF" }
-delta = .0001
-def costmap_header():
+
+def costmap_header(filename):
     """
     initialize the kml file and emit header
     :return: initialized kml file handle
     """
-    kml_file = open("KML_MapFile.kml", "w")
+    kml_file = open(filename, "w")
     kml_file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
     kml_file.write("<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n")
     kml_file.write("\t<Document>\n")
@@ -48,7 +48,7 @@ def get_df(file):
 
 def write_placemark(filehandle, curr_gps, type):
     filehandle.write("\t\t<Placemark>\n")
-    filehandle.write("\t\t\t<description>"+type+"</description>\n")
+    filehandle.write("\t\t\t<description>type</description>\n")
     filehandle.write("\t\t\t<Style id=\""+type+"\">\n")
     filehandle.write("\t\t\t\t<IconStyle>\n")
     filehandle.write("\t\t\t\t\t<color>"+color_dict.get(type)+"</color>\n")  # yellow?
@@ -195,7 +195,7 @@ def main():
     print("rights: " + str(len(right_turns_df.index)))
     print("stops: " + str(len(stops_df.index)))
 
-    kml_handle = costmap_header()
+    kml_handle = costmap_header(sys.argv[len(sys.argv) - 1])
     for points in range(len(stops_df)):
         write_placemark(kml_handle, stops_df.iloc[points], "stop")
     for points in range(len(right_turns_df)):
