@@ -15,7 +15,7 @@ stops_df = pd.DataFrame(
 master_dfs = pd.DataFrame(
         columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
                  'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
-color_dict = {"stop" : "507800F0", "right turn" : "50F0FF14", "left turn" : "5014F0FF" }
+color_dict = {"stop" : "ff00ffff", "right turn" : "00ffffff", "left turn" : "ffff00ff" }
 delta = .002
 
 def costmap_header(filename):
@@ -41,7 +41,7 @@ def get_df(file):
         columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
                  'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
     counter = 0     # counter for getting every n-th data
-    skipping_n = 2
+    skipping_n = 5
     with open(file, 'rt') as readhandle:  # read in the GPS file
         reader = csv.reader(readhandle)
         for row in reader:
@@ -95,42 +95,42 @@ def get_coordinate(curr_gps):
 
 def is_right_turn(prev_gps, curr_gps):
     flag = False
-    if prev_gps["Speed in knots"] > curr_gps["Speed in knots"] and \
-            float(prev_gps["Speed in knots"]) >= 0.10:
-        if float(prev_gps["Track"]) > float(curr_gps["Track"]) and \
-                float(prev_gps["Track"]) - float(curr_gps["Track"]) - 180 >= 65 or \
+    if float(curr_gps["Speed in knots"]) <= 13:
+        # going less than 15 mph
+        if float(prev_gps["Track"]) > float(curr_gps["Track"]):
+            if float(prev_gps["Track"]) - float(curr_gps["Track"]) - 180 >= 80 or \
                 float(prev_gps["Track"]) - float(curr_gps["Track"]) - 180 < 100:
-            # if the starting track angle is higher than the finishing angle and
-            # the smaller difference between the two is greater than or equal to 65 or less than 100 degrees,
-            # it is right turn
-            flag = True
-        elif float(prev_gps["Track"]) < float(curr_gps["Track"]) and \
-                float(prev_gps["Track"]) - float(curr_gps["Track"]) <= -65 or \
+                # if the starting track angle is higher than the finishing angle and
+                # the smaller difference between the two is greater than or equal to 80 or less than 100 degrees,
+                # it is right turn
+                flag = True
+        elif float(prev_gps["Track"]) < float(curr_gps["Track"]):
+            if float(prev_gps["Track"]) - float(curr_gps["Track"]) <= -80 or \
                 float(prev_gps["Track"]) - float(curr_gps["Track"]) > -100:
-            # if the starting track angle is lower than the finishing angle and
-            # the smaller difference between the two is greater than or equal to 65 or less than 100 degrees,
-            # it is right turn
-            flag = True
+                # if the starting track angle is lower than the finishing angle for cases passing North
+                # the smaller difference between the two is greater than or equal to 80 or less than 100 degrees,
+                # it is right turn
+                flag = True
     return flag
 
 def is_left_turn(prev_gps, curr_gps):
     flag = False
-    if prev_gps["Speed in knots"] < curr_gps["Speed in knots"] and \
-            float(prev_gps["Speed in knots"]) >= 0.10:
-        if float(prev_gps["Track"]) < float(curr_gps["Track"]) and \
-                float(prev_gps["Track"]) - float(curr_gps["Track"]) + 180 <= -65 or \
+    if float(curr_gps["Speed in knots"]) <= 17:
+        # going less than 20 mph
+        if float(prev_gps["Track"]) < float(curr_gps["Track"]):
+            if float(prev_gps["Track"]) - float(curr_gps["Track"]) + 180 <= -80 or \
                 float(prev_gps["Track"]) - float(curr_gps["Track"]) + 180 > -100:
-            # if the starting track angle is less than the finishing angle and
-            # the smaller difference between the two is greater than or equal to 65 or less than 100 degrees,
-            # it is left turn
-            flag = True
-        elif float(prev_gps["Track"]) > float(curr_gps["Track"]) and \
-                float(prev_gps["Track"]) - float(curr_gps["Track"]) >= 65 or \
+                # if the starting track angle is less than the finishing angle and
+                # the smaller difference between the two is greater than or equal to 80 or less than 100 degrees,
+                # it is left turn
+                flag = True
+        elif float(prev_gps["Track"]) > float(curr_gps["Track"]):
+            if float(prev_gps["Track"]) - float(curr_gps["Track"]) >= 80 or \
                 float(prev_gps["Track"]) - float(curr_gps["Track"]) < 100:
-            # if the starting track angle is lower than the finishing angle and
-            # the smaller difference between the two is greater than or equal to 65 or less than 100 degrees,
-            # it is right turn
-            flag = True
+                # if the starting track angle is bigger than the finishing angle for cases passing North
+                # the smaller difference between the two is greater than or equal to 80 or less than 100 degrees,
+                # it is left turn
+                flag = True
     return flag
 
 
@@ -158,7 +158,7 @@ def filter_df(df):
             else:
                 prev = curr
                 new_df = new_df.append(prev)
-    #df = df.drop(columns=['...1', '...2'])      # drop unnecessary columns
+    df = df.drop(columns=['...1', '...2'])      # drop unnecessary columns
     #df = df.iloc[::5, :]        # get every 5 rows
     return new_df
 

@@ -98,12 +98,16 @@ def get_df(file):
     gps_df = pd.DataFrame(
         columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
                  'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
+    counter = 0     # counter for getting every n-th data
+    skipping_n = 2
     with open(file, 'rt') as readhandle:  # read in the GPS file
         reader = csv.reader(readhandle)
         for row in reader:
             # only using GPRMC data
             if len(row) == gps_df.shape[1] and row[0] == '$GPRMC':
-                gps_df.loc[len(gps_df)] = row
+                if counter % skipping_n == 0:
+                    gps_df.loc[len(gps_df)] = row
+                counter += 1
     gps_df = filter_df(gps_df)
     return gps_df
 
