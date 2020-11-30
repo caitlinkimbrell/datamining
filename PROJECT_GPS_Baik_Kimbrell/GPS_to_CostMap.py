@@ -3,22 +3,32 @@ import pandas as pd
 import csv
 import math
 
+
+# contians all gps points that are right turns
 right_turns_df = pd.DataFrame(
         columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
                  'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
+# contains all gps points that are left turns
 left_turns_df = pd.DataFrame(
         columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
                  'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
+# contains all gps points that are stops
 stops_df = pd.DataFrame(
         columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
                  'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
+# contains all gps points
 master_dfs = pd.DataFrame(
         columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
                  'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
+# color mapping to placemark type
 color_dict = {"stop" : "ff00ffff", "right turn" : "00ffffff", "left turn" : "ffff00ff" }
+# small delta for filtering duplicates
 delta_small = .002
+# big delta for filtering duplicates
 delta_big = .1
 
+
+# writes out the header of the kml file
 def costmap_header(filename):
     """
     initialize the kml file and emit header
@@ -31,12 +41,14 @@ def costmap_header(filename):
     return kml_file
 
 
+# writes out the ending of the kml file
 def end_kml(filehandle):
     filehandle.write("\t</Document>\n")
     filehandle.write("</kml>")
     filehandle.close()
 
 
+# gets the data frame from the given file
 def get_df(file):
     gps_df = pd.DataFrame(
         columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
@@ -53,6 +65,8 @@ def get_df(file):
                 counter += 1
     return gps_df
 
+
+# writes a place mark in KML to the given file handle, plac emark is off the given gps point
 def write_placemark(filehandle, curr_gps, type):
     filehandle.write("\t\t<Placemark>\n")
     filehandle.write("\t\t\t<description>"+type+"</description>\n")
@@ -72,6 +86,7 @@ def write_placemark(filehandle, curr_gps, type):
     filehandle.write("\t\t</Placemark>\n")
 
 
+# returns the coordinate string og the given gps point
 def get_coordinate(curr_gps):
     coordinate = "\t\t\t\t"
     if curr_gps["E/W of Longitude"] == 'W':
@@ -93,7 +108,7 @@ def get_coordinate(curr_gps):
     coordinate += "\n"
     return coordinate
 
-
+# determines if the curr_gps is a right turn or not
 def is_right_turn(prev_gps, curr_gps):
     flag = False
     if float(curr_gps["Speed in knots"]) <= 13:
@@ -114,6 +129,8 @@ def is_right_turn(prev_gps, curr_gps):
                 flag = True
     return flag
 
+
+# determines if the curr_gps is  aleft turn or not
 def is_left_turn(prev_gps, curr_gps):
     flag = False
     if float(curr_gps["Speed in knots"]) <= 17:
@@ -135,16 +152,21 @@ def is_left_turn(prev_gps, curr_gps):
     return flag
 
 
+# returns whether the curr_gps is a stop or not
 def is_stop(prev_gps, curr_gps):
+    # if its slower than 4 knots it is a stop
     return float(curr_gps["Speed in knots"]) < 4.00
 
 
+# determines if two gps poitns are the same within a given delta
 def is_same(prev, curr, delta):
     if float(prev["Latitude"]) - delta <= float(curr["Latitude"]) <= float(prev["Latitude"]) + delta:
         if float(prev["Longitude"]) - delta <= float(curr["Longitude"]) <= float(prev["Longitude"]) + delta:
             return True
     return False
 
+
+# filters the given data frame using the delta to determine duplicates
 def filter_df(df, delta):
     new_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
     prev = None
@@ -165,7 +187,7 @@ def filter_df(df, delta):
 
 
 def main():
-    # TODO takes in several GPS files and output one kml file with all the placemarks.
+    # takes in seceral gps files and appends to master dataframe, last file name is the name of file to write to
     for i in range(len(sys.argv) - 1):
         if i == 0:
             continue
@@ -175,8 +197,10 @@ def main():
         master_dfs = master_dfs.append(df)
     prev = None
     print(master_dfs[["Longitude", "Latitude", "Speed in knots"]])
+    # filter close duplicates
     master_dfs = filter_df(master_dfs, delta_small)
     print(master_dfs[["Longitude", "Latitude", "Speed in knots"]])
+    # go through master dfs and split gps points into right turn, left turn, or stop
     for row in range(master_dfs.shape[0]):
         curr = master_dfs.iloc[row]
         if prev is None:
@@ -194,6 +218,8 @@ def main():
                 right_turns_df = right_turns_df.append(curr)
             elif is_stop(prev, curr):
                 stops_df = stops_df.append(curr)
+        prev = curr
+    # filter three new dfs using the big interval
     left_turns_df = filter_df(left_turns_df, delta_big)
     right_turns_df = filter_df(right_turns_df, delta_big)
     stops_df = filter_df(stops_df, delta_big)
@@ -201,7 +227,7 @@ def main():
     print("lefts: " + str(len(left_turns_df.index)))
     print("rights: " + str(len(right_turns_df.index)))
     print("stops: " + str(len(stops_df.index)))
-
+    # write the kml
     kml_handle = costmap_header(sys.argv[len(sys.argv) - 1])
     for points in range(len(stops_df)):
         write_placemark(kml_handle, stops_df.iloc[points], "stop")
