@@ -98,15 +98,15 @@ def is_right_turn(prev_gps, curr_gps):
     if float(curr_gps["Speed in knots"]) <= 13:
         # going less than 15 mph
         if float(prev_gps["Track"]) > float(curr_gps["Track"]):
-            if float(prev_gps["Track"]) - float(curr_gps["Track"]) - 180 >= 80 or \
-                float(prev_gps["Track"]) - float(curr_gps["Track"]) - 180 < 100:
+            if 360 - float(prev_gps["Track"]) - float(curr_gps["Track"]) >= 80 or \
+                360 - float(prev_gps["Track"]) - float(curr_gps["Track"]) < 100:
                 # if the starting track angle is higher than the finishing angle and
                 # the smaller difference between the two is greater than or equal to 80 or less than 100 degrees,
                 # it is right turn
                 flag = True
         elif float(prev_gps["Track"]) < float(curr_gps["Track"]):
-            if float(prev_gps["Track"]) - float(curr_gps["Track"]) <= -80 or \
-                float(prev_gps["Track"]) - float(curr_gps["Track"]) > -100:
+            if float(curr_gps["Track"]) - float(prev_gps["Track"]) >= 80 or \
+                float(curr_gps["Track"]) - float(prev_gps["Track"]) < 100:
                 # if the starting track angle is lower than the finishing angle for cases passing North
                 # the smaller difference between the two is greater than or equal to 80 or less than 100 degrees,
                 # it is right turn
