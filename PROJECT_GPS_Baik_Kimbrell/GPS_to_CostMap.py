@@ -16,7 +16,8 @@ master_dfs = pd.DataFrame(
         columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude',
                  'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
 color_dict = {"stop" : "ff00ffff", "right turn" : "00ffffff", "left turn" : "ffff00ff" }
-delta = .002
+delta_small = .002
+delta_big = .1
 
 def costmap_header(filename):
     """
@@ -138,13 +139,13 @@ def is_stop(prev_gps, curr_gps):
     return float(curr_gps["Speed in knots"]) < 4.00
 
 
-def is_same(prev, curr):
+def is_same(prev, curr, delta):
     if float(prev["Latitude"]) - delta <= float(curr["Latitude"]) <= float(prev["Latitude"]) + delta:
         if float(prev["Longitude"]) - delta <= float(curr["Longitude"]) <= float(prev["Longitude"]) + delta:
             return True
     return False
 
-def filter_df(df):
+def filter_df(df, delta):
     new_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
     prev = None
     for row in range(df.shape[0]):
@@ -153,7 +154,7 @@ def filter_df(df):
             new_df = new_df.append(prev)
         else:
             curr = df.iloc[row]
-            if is_same(prev, curr):
+            if is_same(prev, curr, delta):
                 continue
             else:
                 prev = curr
@@ -174,7 +175,7 @@ def main():
         master_dfs = master_dfs.append(df)
     prev = None
     print(master_dfs[["Longitude", "Latitude", "Speed in knots"]])
-    master_dfs = filter_df(master_dfs)
+    master_dfs = filter_df(master_dfs, delta_small)
     print(master_dfs[["Longitude", "Latitude", "Speed in knots"]])
     for row in range(master_dfs.shape[0]):
         curr = master_dfs.iloc[row]
@@ -193,9 +194,9 @@ def main():
                 right_turns_df = right_turns_df.append(curr)
             elif is_stop(prev, curr):
                 stops_df = stops_df.append(curr)
-    left_turns_df = filter_df(left_turns_df)
-    right_turns_df = filter_df(right_turns_df)
-    stops_df = filter_df(stops_df)
+    left_turns_df = filter_df(left_turns_df, delta_big)
+    right_turns_df = filter_df(right_turns_df, delta_big)
+    stops_df = filter_df(stops_df, delta_big)
 
     print("lefts: " + str(len(left_turns_df.index)))
     print("rights: " + str(len(right_turns_df.index)))
