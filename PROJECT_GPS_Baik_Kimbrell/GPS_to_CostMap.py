@@ -14,7 +14,7 @@ stops_df = pd.DataFrame(
                  'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
 file_dfs = []
 color_dict = {"stop" : "507800F0", "right turn" : "50F0FF14", "left turn" : "5014F0FF" }
-
+delta = .0001
 def costmap_header():
     """
     initialize the kml file and emit header
@@ -48,7 +48,7 @@ def get_df(file):
 
 def write_placemark(filehandle, curr_gps, type):
     filehandle.write("\t\t<Placemark>\n")
-    filehandle.write("\t\t\t<description>type</description>\n")
+    filehandle.write("\t\t\t<description>"+type+"</description>\n")
     filehandle.write("\t\t\t<Style id=\""+type+"\">\n")
     filehandle.write("\t\t\t\t<IconStyle>\n")
     filehandle.write("\t\t\t\t\t<color>"+color_dict.get(type)+"</color>\n")  # yellow?
@@ -127,9 +127,16 @@ def is_left_turn(prev_gps, curr_gps):
             flag = True
     return flag
 
+
 def is_stop(prev_gps, curr_gps):
     return float(curr_gps["Speed in knots"]) < 4.00
 
+
+def is_same(prev, curr):
+    if float(prev["Latitude"]) - delta <= float(curr["Latitude"]) <= float(prev["Latitude"]) + delta:
+        if float(prev["Longitude"]) - delta <= float(curr["Longitude"]) <= float(prev["Longitude"]) + delta:
+            return True
+    return False
 
 def filter_df(df):
     new_df = pd.DataFrame(columns=['Type', 'UTC', 'Status', 'Latitude', 'N/S of Longitude', 'Longitude', 'E/W of Longitude', 'Speed in knots', 'Track', 'Date', '...1', '...2', 'Checksum'])
@@ -142,7 +149,7 @@ def filter_df(df):
             counter += 1
         else:
             curr = df.iloc[row]
-            if curr["Latitude"] == prev["Latitude"] and curr["Longitude"] == prev["Longitude"] and curr["Speed in knots"] == prev["Speed in knots"]:
+            if is_same(prev, curr):
                 continue
             else:
                 prev = curr
@@ -184,9 +191,9 @@ def main():
     right_turns_df = filter_df(right_turns_df)
     stops_df = filter_df(stops_df)
 
-    print(left_turns_df)
-    print(right_turns_df)
-    print(stops_df)
+    print("lefts: " + str(len(left_turns_df.index)))
+    print("rights: " + str(len(right_turns_df.index)))
+    print("stops: " + str(len(stops_df.index)))
 
     kml_handle = costmap_header()
     for points in range(len(stops_df)):
